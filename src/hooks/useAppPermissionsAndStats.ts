@@ -10,6 +10,9 @@ import { useCoreStore } from '../store/useCoreStore';
 import { usePeopleStore } from '../store/usePeopleStore';
 import { useInventoryStore } from '../store/useInventoryStore';
 
+const OWNER_EMAIL = (import.meta as any).env?.VITE_OWNER_EMAIL || 'hrskader305@gmail.com';
+const OWNER_UID = (import.meta as any).env?.VITE_OWNER_UID || 'FaQiBWkg8uTxZ2np7BQjDINTyQc2';
+
 export function useAppPermissionsAndTheme() {
   const user = useAuthStore(s => s.user);
   const profile = useAuthStore(s => s.profile);
@@ -45,9 +48,9 @@ export function useAppPermissionsAndTheme() {
     return settings.rolePermissions?.[profile.role] || DEFAULT_PERMISSIONS[profile.role as keyof typeof DEFAULT_PERMISSIONS] || DEFAULT_PERMISSIONS.cashier;
   }, [profile, settings]);
 
-  const isOwner = (user?.email?.toLowerCase().trim() === 'hrskader305@gmail.com') || 
-                 (profile?.email?.toLowerCase().trim() === 'hrskader305@gmail.com') ||
-                 (user?.uid === 'FaQiBWkg8uTxZ2np7BQjINTyQc2');
+  const isOwner = (user?.email?.toLowerCase().trim() === OWNER_EMAIL) || 
+                 (profile?.email?.toLowerCase().trim() === OWNER_EMAIL) ||
+                 (user?.uid === OWNER_UID);
 
   const canAccess = (permission: keyof RolePermissions) => {
     if (isOwner) return true;

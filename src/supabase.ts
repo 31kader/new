@@ -53,6 +53,19 @@ export async function uploadImageBlobToStorage(
 ): Promise<string | null> {
   if (!isSupabaseConfigured) return null;
 
+  // File size validation (limit to 5MB)
+  if (blob.size > 5 * 1024 * 1024) {
+    console.error("[Storage] Upload blocked: File size exceeds 5MB limit.");
+    return null;
+  }
+
+  // File type validation (strict image mime-types only)
+  const allowedTypes = ['image/webp', 'image/png', 'image/jpeg', 'image/jpg', 'image/gif'];
+  if (!allowedTypes.includes(contentType)) {
+    console.error(`[Storage] Upload blocked: Invalid content type ${contentType}.`);
+    return null;
+  }
+
   const fileExt = contentType.includes('webp') ? 'webp' : contentType.includes('png') ? 'png' : 'jpg';
   const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 10)}.${fileExt}`;
   

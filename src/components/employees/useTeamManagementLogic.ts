@@ -4,6 +4,8 @@ import { CompanySettings, UserProfile, RolePermissions } from '../../types';
 import { DEFAULT_PERMISSIONS } from '../../constants';
 import { localDb } from '../../database';
 
+const OWNER_EMAIL = (import.meta as any).env?.VITE_OWNER_EMAIL || 'hrskader305@gmail.com';
+
 export const permissionKeys: (keyof RolePermissions)[] = [
   'canAccessInventory',
   'canAccessSales',
@@ -126,7 +128,7 @@ export function useTeamManagementLogic({
     try {
       const { data: { user } } = await supabase.auth.getUser();
       const currentUserUid = user?.id;
-      const ownerEmail = 'hrskader305@gmail.com';
+      const ownerEmail = OWNER_EMAIL;
 
       const userVictims = users.filter(u => u.uid !== currentUserUid && u.email !== ownerEmail);
       for (const u of userVictims) {

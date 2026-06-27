@@ -73,7 +73,7 @@ class AuthEmulator {
       if (stored) {
         try { 
           const data = JSON.parse(stored);
-          this.currentUser = { ...data, getIdToken: async () => "dummy-token" };
+          this.currentUser = { ...data, getIdToken: async () => btoa(JSON.stringify({ uid: data.uid || "anon", exp: Date.now() + 3600 * 1000 })) };
         } catch (e) {}
       }
     }
@@ -89,7 +89,7 @@ class AuthEmulator {
 
   trigger(user: any) {
     if (user) {
-      this.currentUser = { ...user, getIdToken: async () => "dummy-token" };
+      this.currentUser = { ...user, getIdToken: async () => btoa(JSON.stringify({ uid: user.uid || "anon", exp: Date.now() + 3600 * 1000 })) };
       if (typeof window !== 'undefined') {
         localStorage.setItem('nexus_auth_user', JSON.stringify(this.currentUser));
       }
@@ -324,7 +324,7 @@ const ensureOwnerExists = async (cleanEmail: string, password: string): Promise<
     foundUser = Object.values(employees).find((e: any) => e.email?.toLowerCase().trim() === cleanEmail);
   }
   if (!foundUser) {
-    const id = 'FaQiBWkg8uTxZ2np7BQjDINTyQc2'; // Main owner uid from useAuthUser.tsx
+    const id = (import.meta as any).env?.VITE_OWNER_UID || 'FaQiBWkg8uTxZ2np7BQjDINTyQc2'; // Main owner uid from useAuthUser.tsx
     const passwordHash = bcrypt.hashSync(password, 10);
     const newUser = {
       id,

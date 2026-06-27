@@ -5,8 +5,12 @@ import {
   googleProvider, localDb } from '../database';
 import { UserProfile, Employee } from '../types';
 import bcrypt from 'bcryptjs';
+import { getSecureItem } from '../lib/security';
 
 import { useAuthStore } from '../store/useAuthStore';
+
+const OWNER_EMAIL = (import.meta as any).env?.VITE_OWNER_EMAIL || 'hrskader305@gmail.com';
+const OWNER_UID = (import.meta as any).env?.VITE_OWNER_UID || 'FaQiBWkg8uTxZ2np7BQjDINTyQc2';
 
 export function useAuthUser(appMode: string, setLoading: (loading: boolean) => void) {
   const { user, setUser, profile, setProfile, authError, setAuthError, isLoggingIn, setIsLoggingIn, isUnauthorized, setIsUnauthorized } = useAuthStore();
@@ -14,17 +18,16 @@ export function useAuthUser(appMode: string, setLoading: (loading: boolean) => v
   useEffect(() => {
     // initialize user from offline cache once
     if (!user) {
-      const cachedOffline = localStorage.getItem('nexus_active_offline_session');
-      const cachedOnline = localStorage.getItem('nexus_active_online_session');
-      const cached = cachedOffline || cachedOnline;
-      if (cached) {
+      const sessionOffline = getSecureItem('nexus_active_offline_session');
+      const sessionOnline = getSecureItem('nexus_active_online_session');
+      const session = sessionOffline || sessionOnline;
+      if (session) {
         try {
-          const session = JSON.parse(cached);
           setUser({
             uid: session.uid,
             email: session.email,
             displayName: session.displayName,
-            isOffline: !!cachedOffline
+            isOffline: !!sessionOffline
           } as any);
           setProfile({
             uid: session.uid,
@@ -42,10 +45,9 @@ export function useAuthUser(appMode: string, setLoading: (loading: boolean) => v
 
   useEffect(() => {
     // 1. Initial check: Try to restore offline session immediately if present
-    const cachedOfflineSession = localStorage.getItem('nexus_active_offline_session');
-    if (cachedOfflineSession) {
+    const session = getSecureItem('nexus_active_offline_session');
+    if (session) {
       try {
-        const session = JSON.parse(cachedOfflineSession);
         setUser({
           uid: session.uid,
           email: session.email,
@@ -70,10 +72,9 @@ export function useAuthUser(appMode: string, setLoading: (loading: boolean) => v
       try {
         if (!currentUser) {
           // If we have an active offline session, preserve it and skip setting to null
-          const activeOffline = localStorage.getItem('nexus_active_offline_session');
-          if (activeOffline) {
+          const session = getSecureItem('nexus_active_offline_session');
+          if (session) {
             try {
-              const session = JSON.parse(activeOffline);
               setUser({
                 uid: session.uid,
                 email: session.email,
@@ -103,7 +104,7 @@ export function useAuthUser(appMode: string, setLoading: (loading: boolean) => v
         const mainEmail = currentUser.email?.toLowerCase();
         const providerEmail = currentUser.providerData?.[0]?.email?.toLowerCase();
         const matchEmail = (mainEmail || providerEmail || '').trim();
-        const isOwnerLocally = matchEmail === 'hrskader305@gmail.com' || currentUser.uid === 'FaQiBWkg8uTxZ2np7BQjDINTyQc2';
+        const isOwnerLocally = matchEmail === OWNER_EMAIL || currentUser.uid === OWNER_UID;
 
         if (isOwnerLocally) {
           setIsUnauthorized(false);
@@ -263,7 +264,7 @@ export function useAuthUser(appMode: string, setLoading: (loading: boolean) => v
             });
          }
        } else {
-         const isOwner = matchEmail === 'hrskader305@gmail.com';
+         const isOwner = matchEmail === OWNER_EMAIL;
          let defaultRole = isOwner ? 'admin' : 'cashier';
          if (appMode === 'customer') defaultRole = 'customer';
          if (appMode === 'supplier') defaultRole = 'supplier';
@@ -291,7 +292,7 @@ export function useAuthUser(appMode: string, setLoading: (loading: boolean) => v
         console.warn("Auth state change error (possibly offline or quota):", e.message);
         // Fallback for quota limit exceeded when owner logs in
         if (currentUser && (e?.message?.includes("Quota") || e?.code === 'resource-exhausted')) {
-           const isOwner = currentUser.email?.toLowerCase().trim() === 'hrskader305@gmail.com' || currentUser.uid === 'FaQiBWkg8uTxZ2np7BQjDINTyQc2';
+           const isOwner = currentUser.email?.toLowerCase().trim() === OWNER_EMAIL || currentUser.uid === OWNER_UID;
            if (isOwner) setIsUnauthorized(false);
            setProfile({
              uid: currentUser.uid,

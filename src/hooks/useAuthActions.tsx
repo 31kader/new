@@ -8,6 +8,7 @@ import { logAction } from '../lib/utils';
 import { toast } from 'sonner';
 import bcrypt from 'bcryptjs';
 import { useAuthStore } from '../store/useAuthStore';
+import { getSecureItem, setSecureItem } from '../lib/security';
 
 export function useAuthActions(
   t: (key: string) => string
@@ -26,9 +27,47 @@ export function useAuthActions(
     const inputIdentifier = loginIdentifier.trim();
     const cleanPassword = loginPassword;
 
+    // Rate Limiting Check
+    const lockUntil = Number(localStorage.getItem('nexus_login_lock_until') || '0');
+    if (Date.now() < lockUntil) {
+      const remainingSeconds = Math.ceil((lockUntil - Date.now()) / 1000);
+      setAuthError(t(`Trop de tentatives de connexion. Veuillez patienter ${remainingSeconds} secondes.`));
+      setIsLoggingIn(false);
+      return;
+    }
+
+    // Input Validation
+    if (cleanPassword.length < 6) {
+      setAuthError(t("Le mot de passe doit contenir au moins 6 caractères."));
+      setIsLoggingIn(false);
+      return;
+    }
+
+    if (inputIdentifier.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inputIdentifier)) {
+      setAuthError(t("Format d'adresse e-mail invalide."));
+      setIsLoggingIn(false);
+      return;
+    }
+
+    const recordFailure = () => {
+      const currentFailures = Number(localStorage.getItem('nexus_login_failures') || '0') + 1;
+      if (currentFailures >= 5) {
+        localStorage.setItem('nexus_login_lock_until', (Date.now() + 60000).toString());
+        localStorage.setItem('nexus_login_failures', '0');
+        setAuthError(t("Trop d'échecs de connexion. Connexion verrouillée pendant 60 secondes."));
+      } else {
+        localStorage.setItem('nexus_login_failures', currentFailures.toString());
+      }
+    };
+
+    const resetFailureCount = () => {
+      localStorage.removeItem('nexus_login_failures');
+      localStorage.removeItem('nexus_login_lock_until');
+    };
+
     const tryOfflineLogin = () => {
       try {
-        const offlineCreds = JSON.parse(localStorage.getItem('nexus_offline_credentials') || '{}');
+        const offlineCreds = getSecureItem<Record<string, any>>('nexus_offline_credentials') || {};
         const phoneKey = inputIdentifier.replace(/\s+/g, '');
         const matchedRecord = offlineCreds[inputIdentifier.toLowerCase()] || offlineCreds[phoneKey];
         
@@ -43,7 +82,7 @@ export function useAuthActions(
               role: matchedRecord.role,
               employeeId: matchedRecord.employeeId
             };
-            localStorage.setItem('nexus_active_offline_session', JSON.stringify(session));
+            setSecureItem('nexus_active_offline_session', session);
             setUser({
               uid: session.uid,
               email: session.email,
@@ -58,6 +97,7 @@ export function useAuthActions(
               employeeId: session.employeeId
             });
             setIsUnauthorized(false);
+            resetFailureCount();
             toast.success(t("Connexion réussie en mode hors ligne."));
             return true;
           }
@@ -72,6 +112,7 @@ export function useAuthActions(
       const success = tryOfflineLogin();
       setIsLoggingIn(false);
       if (!success) {
+        recordFailure();
         setAuthError(t("Connexion hors ligne échouée : Identifiant ou mot de passe incorrect pour le mode hors ligne."));
       }
       return;
@@ -94,7 +135,7 @@ export function useAuthActions(
           const empId = userData ? (userData.employeeId || null) : null;
           const phone = userData ? (userData.phone || '') : '';
 
-          const offlineCreds = JSON.parse(localStorage.getItem('nexus_offline_credentials') || '{}');
+          const offlineCreds = getSecureItem<Record<string, any>>('nexus_offline_credentials') || {};
           const credRecord = {
             displayName,
             email: email,
@@ -105,7 +146,8 @@ export function useAuthActions(
           };
           offlineCreds[email.toLowerCase()] = credRecord;
           if (phone) offlineCreds[phone] = credRecord;
-          localStorage.setItem('nexus_offline_credentials', JSON.stringify(offlineCreds));
+          setSecureItem('nexus_offline_credentials', offlineCreds);
+          resetFailureCount();
         } catch (cacheErr) {
           console.warn("Failed to cache offline credentials", cacheErr);
         }
@@ -130,6 +172,7 @@ export function useAuthActions(
           setIsLoggingIn(false);
           return;
         }
+        recordFailure();
         setAuthError(t("Erreur de réseau (Failed to fetch). Connectez-vous avec de bons identifiants hors-ligne ou vérifiez votre connexion Internet."));
       } else if (
         error.code === 'auth/invalid-credential' || 
@@ -142,8 +185,10 @@ export function useAuthActions(
           setIsLoggingIn(false);
           return;
         }
+        recordFailure();
         setAuthError("L'identifiant ou le mot de passe est incorrect. Si vous êtes l'administrateur, veuillez utiliser le bouton 'Connexion avec Google'. Les employés doivent avoir un compte créé par le manager.");
       } else {
+        recordFailure();
         setAuthError(error.message || "Erreur de connexion");
       }
     } finally {

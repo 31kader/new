@@ -8,6 +8,8 @@ import { useTeamManagementLogic } from './useTeamManagementLogic';
 import { TeamManagementUsersTab } from './TeamManagementUsersTab';
 import { TeamManagementPermissionsTab } from './TeamManagementPermissionsTab';
 
+const OWNER_EMAIL = (import.meta as any).env?.VITE_OWNER_EMAIL || 'hrskader305@gmail.com';
+
 export const TeamManagement = React.memo(function TeamManagement({ 
   users, 
   employees, 
@@ -74,7 +76,7 @@ export const TeamManagement = React.memo(function TeamManagement({
             </button>
           </div>
           
-          {auth.currentUser?.email === 'hrskader305@gmail.com' && (
+          {auth.currentUser?.email === OWNER_EMAIL && (
             <button 
               onClick={handlePurgeAll}
               disabled={isProcessing}
