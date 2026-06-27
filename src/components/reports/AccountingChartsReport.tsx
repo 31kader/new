@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { TrendingUp, LayoutGrid, Users, ShoppingBag } from 'lucide-react';
 import { 
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
@@ -25,6 +25,10 @@ export const AccountingChartsReport = React.memo(function AccountingChartsReport
   settings,
 }: AccountingChartsReportProps) {
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly');
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const data = useMemo(() => {
     const categoryMap: Record<string, number> = {};
@@ -164,25 +168,27 @@ export const AccountingChartsReport = React.memo(function AccountingChartsReport
             Évolution des Ventes
           </h4>
           <div className="h-[300px] w-full relative min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
-              <AreaChart data={data.periodData}>
-                <defs>
-                  <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
-                    <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
-                <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                  itemStyle={{ color: '#fff' }}
-                  formatter={(value: any) => [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Total']}
-                />
-                <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
-              </AreaChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
+                <AreaChart data={data.periodData}>
+                  <defs>
+                    <linearGradient id="colorTotal" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#4f46e5" stopOpacity={0.3}/>
+                      <stop offset="95%" stopColor="#4f46e5" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any) => [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Total']}
+                  />
+                  <Area type="monotone" dataKey="value" stroke="#4f46e5" strokeWidth={4} fillOpacity={1} fill="url(#colorTotal)" />
+                </AreaChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
@@ -193,28 +199,31 @@ export const AccountingChartsReport = React.memo(function AccountingChartsReport
             Ventes par Source
           </h4>
           <div className="h-[300px] w-full relative min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
-              <PieChart>
-                <Pie
-                  data={Object.entries(data.revenueBySource).map(([name, value]) => ({ name, value }))}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  <Cell fill="#4f46e5" stroke="rgba(255,255,255,0.05)" />
-                  <Cell fill="#10b981" stroke="rgba(255,255,255,0.05)" />
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                  itemStyle={{ color: '#fff' }}
-                  formatter={(value: any) => [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Ventes']}
-                />
-                <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">{value}</span>}/>
-              </PieChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
+                <PieChart>
+                  <Pie
+                    data={Object.entries(data.revenueBySource).map(([name, value]) => ({ name, value }))}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {Object.entries(data.revenueBySource).map((_, index) => (
+                      <Cell key={`cell-rev-source-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any) => [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Total']}
+                  />
+                  <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">{value}</span>}/>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
@@ -249,23 +258,25 @@ export const AccountingChartsReport = React.memo(function AccountingChartsReport
             Performance par Employé
           </h4>
           <div className="h-[300px] w-full relative min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
-              <BarChart data={data.employeeData} layout="vertical">
-                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff05" />
-                <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} />
-                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} width={120} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                  itemStyle={{ color: '#fff' }}
-                  formatter={(value: any) => [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Total Vendu']}
-                />
-                <Bar dataKey="value" radius={[0, 8, 8, 0]}>
-                  {data.employeeData.map((_, index) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
+                <BarChart data={data.employeeData} layout="vertical">
+                  <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#ffffff05" />
+                  <XAxis type="number" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} />
+                  <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: '#ffffff44' }} width={120} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any) => [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Total Vendu']}
+                  />
+                  <Bar dataKey="value" radius={[0, 8, 8, 0]}>
+                    {data.employeeData.map((_, index) => (
+                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
@@ -276,33 +287,34 @@ export const AccountingChartsReport = React.memo(function AccountingChartsReport
             Ventes par Produit (Volume & Revenu)
           </h4>
           <div className="h-[400px] w-full relative min-h-[400px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={400} debounce={50}>
-              <BarChart data={data.productSalesData.slice(0, 10)} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
-                <XAxis 
-                  dataKey="name" 
-                  axisLine={false} 
-                  tickLine={false} 
-                  tick={{ fontSize: 10, fill: '#ffffff44' }} 
-                  angle={-45} 
-                  textAnchor="end" 
-                  interval={0}
-                />
-                <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#ffffff44' }} />
-                <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#ffffff44' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                  itemStyle={{ color: '#fff' }}
-                  formatter={(value: any, name: any) => {
-                    if (name === 'revenue') return [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Chiffre d\'Affaires'];
-                    return [value, 'Unités Vendues'];
-                  }}
-                />
-                <Legend verticalAlign="top" align="right" />
-                <Bar yAxisId="left" dataKey="revenue" name="revenue" fill="#4f46e5" radius={[4, 4, 0, 0]} barSize={20} />
-                <Bar yAxisId="right" dataKey="quantity" name="quantity" fill="#10b981" radius={[4, 4, 0, 0]} barSize={20} />
-              </BarChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={400} debounce={50}>
+                <BarChart data={data.productSalesData.slice(0, 10)} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#ffffff05" />
+                  <XAxis 
+                    dataKey="name" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    tick={{ fontSize: 10, fill: '#ffffff44' }} 
+                    angle={-45} 
+                    textAnchor="end" 
+                    interval={0}
+                  />
+                  <YAxis yAxisId="left" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#ffffff44' }} />
+                  <YAxis yAxisId="right" orientation="right" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: '#ffffff44' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any, name: any) => {
+                      if (name === 'revenue') return [`${Number(value || 0).toFixed(2)} ${settings.currency}`, 'Chiffre d\'Affaires'];
+                      return [value, 'Unités Vendues'];
+                    }}
+                  />
+                  <Bar yAxisId="left" dataKey="revenue" fill="#4f46e5" radius={[8, 8, 0, 0]} />
+                  <Bar yAxisId="right" dataKey="quantity" fill="#10b981" radius={[8, 8, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
       </div>

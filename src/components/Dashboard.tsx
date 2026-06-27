@@ -1,4 +1,4 @@
-import React, { useMemo, memo } from 'react';
+import React, { useMemo, memo, useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { 
   DollarSign, ShoppingBag, AlertCircle, CreditCard, Banknote, TrendingUp, TrendingDown, Smartphone, Zap 
@@ -24,6 +24,10 @@ export const Dashboard = memo(function Dashboard({ transactions, products, setti
   handleInstallApp?: () => void
 }) {
   const { t } = useTranslation();
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const stats = useMemo(() => {
     const today = new Date().toISOString().split('T')[0];
     let dailyRevenue = 0;
@@ -142,26 +146,28 @@ export const Dashboard = memo(function Dashboard({ transactions, products, setti
             </div>
           </div>
           <div className="h-[300px] w-full relative min-h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
-              <LineChart data={stats.chartData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.2)', fontWeight: '900', letterSpacing: '0.1em' }} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.2)', fontWeight: '900' }} />
-                <Tooltip 
-                  contentStyle={{ backgroundColor: 'rgba(10, 10, 15, 0.95)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(12px)' }}
-                  itemStyle={{ color: '#818cf8', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase' }}
-                  labelStyle={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px' }}
-                  cursor={{ stroke: 'rgba(99,102,241,0.2)', strokeWidth: 2 }}
-                />
-                <defs>
-                  <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
-                  </linearGradient>
-                </defs>
-                <Line type="monotone" dataKey="total" stroke="#818cf8" strokeWidth={5} dot={{ r: 0 }} activeDot={{ r: 6, fill: '#fff', stroke: '#818cf8', strokeWidth: 3 }} animationDuration={2000} />
-              </LineChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300} debounce={50}>
+                <LineChart data={stats.chartData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.2)', fontWeight: '900', letterSpacing: '0.1em' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fontSize: 10, fill: 'rgba(255,255,255,0.2)', fontWeight: '900' }} />
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: 'rgba(10, 10, 15, 0.95)', borderRadius: '24px', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', backdropFilter: 'blur(12px)' }}
+                    itemStyle={{ color: '#818cf8', fontSize: '12px', fontWeight: '900', textTransform: 'uppercase' }}
+                    labelStyle={{ color: 'rgba(255,255,255,0.4)', fontSize: '10px', marginBottom: '4px', borderBottom: '1px solid rgba(255,255,255,0.05)', paddingBottom: '4px' }}
+                    cursor={{ stroke: 'rgba(99,102,241,0.2)', strokeWidth: 2 }}
+                  />
+                  <defs>
+                    <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="#6366f1" stopOpacity={0.1}/>
+                      <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
+                    </linearGradient>
+                  </defs>
+                  <Line type="monotone" dataKey="total" stroke="#818cf8" strokeWidth={5} dot={{ r: 0 }} activeDot={{ r: 6, fill: '#fff', stroke: '#818cf8', strokeWidth: 3 }} animationDuration={2000} />
+                </LineChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 

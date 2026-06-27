@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { Trash2, AlertTriangle, LayoutGrid, RotateCcw, History, Clock } from 'lucide-react';
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend } from 'recharts';
 import { motion } from 'motion/react';
@@ -23,6 +23,10 @@ export const LossesReport = React.memo(function LossesReport({
   settings,
   totalRevenue,
 }: LossesReportProps) {
+  const [isMounted, setIsMounted] = useState(false);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   const lossData = useMemo(() => {
     const losses = stockAdjustments.filter(adj => adj.adjustment < 0 && adj.isLoss === true);
     
@@ -93,29 +97,31 @@ export const LossesReport = React.memo(function LossesReport({
             <LayoutGrid size={18} className="text-rose-500" /> Répartition par Raison
           </h4>
           <div className="h-[300px]">
-            <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
-              <PieChart>
-                <Pie
-                  data={lossData.lossByReason}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={100}
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {lossData.lossByReason.map((entry, index) => (
-                    <Cell key={`cell-loss-reason-${index}`} fill={COLORS[index % COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
-                  itemStyle={{ color: '#fff' }}
-                  formatter={(value: any) => [`${Number(value || 0).toLocaleString()} ${settings.currency}`, 'Valeur']}
-                />
-                <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">{value}</span>}/>
-              </PieChart>
-            </ResponsiveContainer>
+            {isMounted && (
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={300}>
+                <PieChart>
+                  <Pie
+                    data={lossData.lossByReason}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {lossData.lossByReason.map((entry, index) => (
+                      <Cell key={`cell-loss-reason-${index}`} fill={COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{ backgroundColor: '#0a0a0f', borderRadius: '16px', border: '1px solid rgba(255,255,255,0.1)', color: '#fff' }}
+                    itemStyle={{ color: '#fff' }}
+                    formatter={(value: any) => [`${Number(value || 0).toLocaleString()} ${settings.currency}`, 'Valeur']}
+                  />
+                  <Legend verticalAlign="bottom" height={36} formatter={(value) => <span className="text-white/40 text-[10px] font-black uppercase tracking-widest">{value}</span>}/>
+                </PieChart>
+              </ResponsiveContainer>
+            )}
           </div>
         </Card>
 
