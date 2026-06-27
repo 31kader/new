@@ -76,9 +76,9 @@ export function SubTabPurchasesHistory({
                   <td className="p-4 text-xs font-mono text-industrial-400">{formatSafe(p.date, 'dd/MM/yyyy HH:mm')}</td>
                   <td className="p-4 text-sm font-black text-white uppercase tracking-tight">{p.supplierName}</td>
                   <td className="p-4 text-xs font-mono text-indigo-400">{p.invoiceNumber}</td>
-                  <td className="p-4 text-md font-black text-white font-mono">{p.total.toFixed(2)}</td>
+                  <td className="p-4 text-md font-black text-white font-mono">{(p.total ?? (p as any).totalAmount ?? 0).toFixed(2)}</td>
                   <td className="p-4 text-sm text-emerald-400 font-black font-mono">{p.paidAmount?.toFixed(2) || '0.00'}</td>
-                  <td className="p-4 text-sm text-rose-500 font-black font-mono">{(p.total - (p.paidAmount || 0)).toFixed(2)}</td>
+                  <td className="p-4 text-sm text-rose-500 font-black font-mono">{((p.total ?? (p as any).totalAmount ?? 0) - (p.paidAmount || 0)).toFixed(2)}</td>
                   <td className="p-4 text-right flex gap-3 justify-end items-center">
                     <button onClick={(e) => { e.stopPropagation(); setViewingPurchaseVoucher(p); }} className="p-2 text-industrial-500 hover:text-indigo-400 hover:bg-industrial-800 transition-all rounded-xl"><FileText size={18}/></button>
                     <button onClick={(e) => { e.stopPropagation(); handleEditPurchaseRequest(p); }} title="Modifier" className="p-2 text-amber-500 hover:bg-amber-500/10 transition-all rounded-xl border border-amber-500/20"><Edit size={18}/></button>
