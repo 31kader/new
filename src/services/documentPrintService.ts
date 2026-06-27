@@ -221,7 +221,7 @@ export const printPurchaseVoucher = (purchase: any, settings: CompanySettings) =
           </tbody>
         </table>
         <div class="grand-total">
-          TOTAL: ${purchase.total.toFixed(2)} ${settings.currency}
+          TOTAL: ${Number(purchase.total ?? (purchase as any).totalAmount ?? 0).toFixed(2)} ${settings.currency}
         </div>
       </body>
     </html>
@@ -238,11 +238,11 @@ export const printHistory = (filteredPurchases: Purchase[], settings: CompanySet
         <div style="font-size: 11px; font-weight: 700;">Facture: ${p.invoiceNumber || '-'}</div>
       </td>
       <td style="padding: 10px 8px; border-bottom: 2px solid #000; text-align: center; font-weight: 900;">${p.items.length}</td>
-      <td style="padding: 10px 8px; border-bottom: 2px solid #000; text-align: right; font-weight: 900; font-size: 13px;">${p.total.toFixed(2)} ${settings.currency}</td>
+      <td style="padding: 10px 8px; border-bottom: 2px solid #000; text-align: right; font-weight: 900; font-size: 13px;">${Number(p.total ?? (p as any).totalAmount ?? 0).toFixed(2)} ${settings.currency}</td>
     </tr>
   `).join('');
 
-  const totalAmount = filteredPurchases.reduce((sum, p) => sum + p.total, 0);
+  const totalAmount = filteredPurchases.reduce((sum, p) => sum + Number(p.total ?? (p as any).totalAmount ?? 0), 0);
 
   const html = `
     <html>

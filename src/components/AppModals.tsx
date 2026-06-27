@@ -256,15 +256,15 @@ export const AppModals: React.FC<any> = ({
                         <p className="text-[10px] text-slate-400">Réf: {item.productId ? item.productId.slice(-6).toUpperCase() : 'NO-SKU'}</p>
                       </td>
                       <td className="p-3 text-sm text-slate-600 text-center font-bold">{item.quantity}</td>
-                      <td className="p-3 text-sm text-slate-600 text-right">{item.costPrice.toFixed(2)} {p.settings?.currency}</td>
-                      <td className="p-3 text-sm font-bold text-slate-900 text-right">{(item.quantity * item.costPrice).toFixed(2)} {p.settings?.currency}</td>
+                      <td className="p-3 text-sm text-slate-600 text-right">{Number(item.costPrice || 0).toFixed(2)} {p.settings?.currency}</td>
+                      <td className="p-3 text-sm font-bold text-slate-900 text-right">{(Number(item.quantity || 0) * Number(item.costPrice || 0)).toFixed(2)} {p.settings?.currency}</td>
                     </tr>
                   ))}
                 </tbody>
                 <tfoot className="bg-slate-50 font-bold border-t border-slate-200">
                   <tr>
                     <td colSpan={3} className="p-4 text-right text-slate-500">Total Général</td>
-                    <td className="p-4 text-right text-lg text-indigo-700 font-black">{p.viewingPurchaseVoucher.total.toFixed(2)} {p.settings?.currency}</td>
+                    <td className="p-4 text-right text-lg text-indigo-700 font-black">{Number(p.viewingPurchaseVoucher.total ?? (p.viewingPurchaseVoucher as any).totalAmount ?? 0).toFixed(2)} {p.settings?.currency}</td>
                   </tr>
                 </tfoot>
               </table>
