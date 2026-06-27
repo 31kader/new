@@ -194,8 +194,14 @@ html:not(.light) .text-gray-600 {
   }
 
   body {
-    @apply bg-industrial-950 text-industrial-400 font-sans antialiased selection:bg-indigo-500/30;
+    @apply text-industrial-400 font-sans antialiased selection:bg-indigo-500/30;
+    background-color: var(--bg-nardo);
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.03) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.03) 0px, transparent 50%);
+    background-attachment: fixed;
     color: var(--text-industrial-400);
+    transition: background-color 0.3s ease;
   }
 
   html.rtl,
@@ -260,6 +266,42 @@ html:not(.light) .text-gray-600 {
   
   .bg-industrial-800, .bg-slate-900, .bg-slate-900\/60, .bg-slate-800\/40, .bg-slate-800, .bg-slate-950\/50, .bg-slate-900\/40 {
     background-color: var(--bg-industrial-800) !important;
+    backdrop-filter: blur(16px) !important;
+    border: 1px solid var(--card-border) !important;
+    box-shadow: var(--soft-shadow) !important;
+    transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+  
+  .bg-industrial-800:hover, .bg-slate-900:hover, .bg-slate-800\/40:hover {
+    border-color: rgba(255, 255, 255, 0.08) !important;
+  }
+
+  /* Micro-interactions & button glows */
+  button, input, select, textarea, a {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  button:active, a:active {
+    transform: scale(0.98) !important;
+  }
+
+  /* Glowing indicators for active states */
+  .bg-indigo-600, .bg-indigo-500, .bg-brand-primary {
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.2) !important;
+  }
+
+  .bg-indigo-600:hover, .bg-indigo-500:hover, .bg-brand-primary:hover {
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.35) !important;
+    transform: translateY(-1px) !important;
+  }
+
+  .bg-emerald-600, .bg-emerald-500 {
+    box-shadow: 0 4px 15px rgba(16, 185, 129, 0.2) !important;
+  }
+
+  .bg-emerald-600:hover, .bg-emerald-500:hover {
+    box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35) !important;
+    transform: translateY(-1px) !important;
   }
   
   .bg-white\/5, .bg-white\/10 {
